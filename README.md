@@ -12,7 +12,7 @@ A text-based dungeon adventure game where a hero navigates rooms, fights monster
 | 이름 | 역할 |
 |------|------|
 | 오경빈(Oh Gyeong-bin) | Hero, Monster, Weapon, Item 계층 설계 |
-| 염성민(Yeom Seong-min | Room, Door, main method 구현 |
+| 염성민(Yeom Seong-min) | Room, Door, main method 구현 |
 
 ---
 
