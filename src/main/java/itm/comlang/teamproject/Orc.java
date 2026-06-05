@@ -14,16 +14,17 @@ public class Orc extends Entity implements Fightable{
     private int damage;
     
     public Orc(int row, int col) {
-        super(row, col, "O");
+        super(row, col);
         this.maxHealth = 8;
         this.Health = 8;
         this.damage = 3;
     }
     
     @Override
-    public void onDelete() {
-        
+    public void onDelete(Room room) {
+        room.removeEntity(this);
     }
+
     @Override
     public int getMaxHealth() {
         return this.maxHealth;

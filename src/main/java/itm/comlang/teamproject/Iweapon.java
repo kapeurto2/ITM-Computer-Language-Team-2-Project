@@ -9,6 +9,6 @@ package itm.comlang.teamproject;
  * @author Kapeu
  */
 public interface Iweapon {
-    public void setWeapon(Hero hero);
     public int getDamage();
+    public String getName();
 }

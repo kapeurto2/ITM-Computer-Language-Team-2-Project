@@ -14,7 +14,7 @@ public class Goblin extends Entity implements Fightable{
     private int damage;
     
     public Goblin(int row, int col) {
-        super(row, col, "G");
+        super(row, col);
         this.maxHealth = 3;
         this.Health = 3;
         this.damage = 1;
@@ -22,8 +22,8 @@ public class Goblin extends Entity implements Fightable{
     
     
     @Override
-    public void onDelete() {
-        
+    public void onDelete(Room room) {
+        room.removeEntity(this);
     }
     @Override
     public int getMaxHealth() {

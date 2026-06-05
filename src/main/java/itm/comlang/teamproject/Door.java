@@ -13,7 +13,7 @@ public class Door extends Entity {
     private String targetRoom;   
     private boolean master;      
     public Door(int row, int col, String targetRoom, boolean master) {
-        super(row, col, master ? "D" : "d");   
+        super(row, col);   
         this.targetRoom = targetRoom;
         this.master = master;
     }
@@ -27,7 +27,7 @@ public class Door extends Entity {
     }
 
     @Override
-    public void onDelete() {
+    public void onDelete(Room room) {
         // 문은 삭제 시 특별한 동작 없음 (비워둠)
     }
 }

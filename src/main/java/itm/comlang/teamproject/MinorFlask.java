@@ -8,43 +8,43 @@ package itm.comlang.teamproject;
  *
  * @author 오갱
  */
-public class MinorFlask extends Item implements Ihealing{
+public class MinorFlask extends Item implements Ihealing {
 
     private int recover;
 
-    
     public MinorFlask(int row, int col) {
-        super(row, col, "m");
+        super(row, col);
         this.recover = 6;
     }
-    //성민애몽
-    public void onDelete() {
-        
-    }
-    // 성민애몽
+
     @Override
-    public void interact(Hero hero) {
-        
+    public void onDelete(Room room) {
+        room.removeEntity(this);
     }
-    
+
     @Override
-    public void onRecover(Hero hero) {
+    public void onInteract(Hero hero, Room room) {
+        if (onRecover(hero)) {
+            room.removeEntity(this);
+        }
+    }
+
+    @Override
+    public boolean onRecover(Hero hero) {
+        if (hero.getHealth() >= hero.getMaxHealth()) {
+            return false;
+        }
         int heal = hero.getHealth() + this.recover;
-        if(heal > hero.getMaxHealth()) {
+        if (heal > hero.getMaxHealth()) {
             hero.setHealth(hero.getMaxHealth());
         } else {
             hero.setHealth(heal);
         }
-        
+        return true;
     }
+
     @Override
     public String getSymbol() {
         return "m";
     }
-    
-    
-    
-    
-    
-    
 }

@@ -13,35 +13,41 @@ public class BigFlask extends Item implements Ihealing {
     private int recover;
 
     public BigFlask(int row, int col) {
-        super(row, col, "B");
+        super(row, col);
         this.recover = 12;
     }
 
-    //성민애몽
-    public void onDelete() {
-
+    @Override
+    public void onDelete(Room room) {
+        room.removeEntity(this);
     }
 
     // 성민애몽
-    
-    public void interact(Hero hero) {
-
+    @Override
+    public void onInteract(Hero hero, Room room) {
+        if (onRecover(hero)) {
+            room.removeEntity(this);
+        }
     }
 
     @Override
-    public void onRecover(Hero hero) {
+    public boolean onRecover(Hero hero) {
+        if (hero.getHealth() >= hero.getMaxHealth()) {
+            return false;
+        }
         int heal = hero.getHealth() + this.recover;
         if (heal > hero.getMaxHealth()) {
             hero.setHealth(hero.getMaxHealth());
         } else {
             hero.setHealth(heal);
         }
-
+        return true;
     }
+
     
     @Override
     public String getSymbol() {
-        return "m";
+        return "B";
     }
     
 

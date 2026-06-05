@@ -14,15 +14,12 @@ import java.util.Scanner;
 
 public class Room {
 
-    private ArrayList<Entity> entities;  // 핵심 자료구조 (source of truth)
-    private String[][] grid;             // entities 로부터 갱신되는 맵 (출력/저장용)
+    private ArrayList<Entity> entities; 
+    private String[][] grid;             
     private int rows;
     private int cols;
     private String fileName;
 
-    // -------------------------------------------------------
-    // 생성자: CSV 파일을 읽어 엔티티 목록과 맵을 만든다
-    // -------------------------------------------------------
     public Room(String fileName) throws IOException {
         this.fileName = fileName;
         this.entities = new ArrayList<>();
@@ -58,43 +55,42 @@ public class Room {
             }
         }
     }
-
-    // -------------------------------------------------------
-    // 셀 문자열 -> 알맞은 Entity 구체 클래스 생성 
-    // -------------------------------------------------------
     private Entity createEntity(int row, int col, String value) {
         if (value == null || value.isEmpty() || value.equals(" ")) {
-            return null;                                  
+            return null;
         }
-
         if (value.equals("@")) return new Hero(row, col);
-        //if (value.equals("S")) return new Stick(col, row);        
-        //if (value.equals("W")) return new WeakSword(col, row);    
-        //if (value.equals("X")) return new StrongSword(col, row);  
-        //if (value.equals("m")) return new MinorFlask(col, row, "m");  
-        //if (value.equals("B")) return new BigFlask(col, row, "B");    
+        if (value.equals("S")) return new Stick(row, col);
+        if (value.equals("W")) return new WeakSword(row, col);
+        if (value.equals("X")) return new StrongSword(row, col);
+        if (value.equals("m")) return new MinorFlask(row, col);
+        if (value.equals("B")) return new BigFlask(row, col);
+        if (value.equals("*")) return new Key(row, col);          
         if (value.equals("D")) return new Door(row, col, null, true);
-        //if (value.equals("*")) return new Key(row, col);
+
+        if (value.equals("G")) return new Goblin(row, col);
+        if (value.equals("O")) return new Orc(row, col);
+        if (value.equals("T")) return new Troll(row, col);
 
         if (value.contains(":")) {
             String[] p = value.split(":", 2);
-            String head = p[0];
-            String data = p[1];
+            String head = p[0].trim();
+            String data = p[1].trim();
 
             switch (head) {
-                case "d":   
+                case "d":
                     return new Door(row, col, data, false);
-                case "G": { 
+                case "G": {
                     Goblin g = new Goblin(row, col);
                     g.setHealth(Integer.parseInt(data));
                     return g;
                 }
-                case "O": { 
+                case "O": {
                     Orc o = new Orc(row, col);
                     o.setHealth(Integer.parseInt(data));
                     return o;
                 }
-                case "T": {                    
+                case "T": {
                     Troll t = new Troll(row, col);
                     t.setHealth(Integer.parseInt(data));
                     return t;
@@ -102,12 +98,10 @@ public class Room {
             }
         }
 
-        return null;  // 알 수 없는 심볼은 무시
+        return null;
     }
+        
 
-    // -------------------------------------------------------
-    // entities -> grid 갱신 (리스트가 바뀔 때마다 호출)
-    // -------------------------------------------------------
     public void refreshMap() {
         this.grid = new String[rows][cols];
         for (int r = 0; r < rows; r++) {
@@ -121,13 +115,12 @@ public class Room {
     }
 
     public void saveToCSV(String filePath) throws IOException {
-        refreshMap();
         try (PrintWriter writer = new PrintWriter(filePath)) {
             writer.println(rows + "," + cols);
             for (int r = 0; r < rows; r++) {
                 StringBuilder line = new StringBuilder();
                 for (int c = 0; c < cols; c++) {
-                    line.append(grid[r][c]);
+                    line.append(cellToCsv(getEntityAt(r, c)));
                     if (c < cols - 1) {
                         line.append(",");
                     }
@@ -137,9 +130,29 @@ public class Room {
         }
     }
 
-    // -------------------------------------------------------
-    // 엔티티 조회 / 추가 / 삭제 (변경 시 맵 갱신)
-    // -------------------------------------------------------
+    private String cellToCsv(Entity e) {
+        if (e == null) {
+            return " ";
+        }
+        if (e instanceof Hero) {
+            return " ";
+        }
+        if (e instanceof Door) {
+            Door d = (Door) e;
+            return d.isMaster() ? "D" : "d:" + d.getTargetRoom();
+        }
+        if (e instanceof Goblin) {
+            return "G:" + ((Goblin) e).getHealth();
+        }
+        if (e instanceof Orc) {
+            return "O:" + ((Orc) e).getHealth();
+        }
+        if (e instanceof Troll) {
+            return "T:" + ((Troll) e).getHealth();
+        }
+        return e.getSymbol();   // 무기 S/W/X, 포션 m/B, 키 *
+    }
+
     public Entity getEntityAt(int row, int col) {
         for (Entity e : entities) {
             if (e.getRow() == row && e.getCol() == col) {
@@ -163,9 +176,6 @@ public class Room {
         return entities;
     }
 
-    // -------------------------------------------------------
-    // 방 안의 도어 목록 반환 (instanceof 로 깔끔하게)
-    // -------------------------------------------------------
     public ArrayList<Door> getDoors() {
         ArrayList<Door> doors = new ArrayList<>();
         for (Entity e : entities) {
@@ -176,10 +186,6 @@ public class Room {
         return doors;
     }
 
-    // -------------------------------------------------------
-    // 히어로 시작 위치 찾기
-    // 1순위: @(Hero) / 2순위: [1][1] / 3순위: 랜덤 빈 공간
-    // -------------------------------------------------------
     public int[] findHeroStart() {
         for (Entity e : entities) {
             if (e instanceof Hero) {
@@ -208,18 +214,12 @@ public class Room {
         return new int[]{1, 1};
     }
 
-    // -------------------------------------------------------
-    // 방 출력 (ASCII 벽 + grid 직접 읽기: 칸당 O(1))
-    // -------------------------------------------------------
     public void printRoom() {
-        refreshMap();  // grid 최신화
-
-        // 상단 벽
+        refreshMap();  
         System.out.print("+");
         for (int c = 0; c < cols; c++) System.out.print("-");
         System.out.println("+");
 
-        // 그리드
         for (int r = 0; r < rows; r++) {
             System.out.print("|");
             for (int c = 0; c < cols; c++) {
@@ -228,15 +228,11 @@ public class Room {
             System.out.println("|");
         }
 
-        // 하단 벽
         System.out.print("+");
         for (int c = 0; c < cols; c++) System.out.print("-");
         System.out.println("+");
     }
 
-    // -------------------------------------------------------
-    // 셀 값 읽기 / 쓰기 (쓰기 시 리스트 변경 -> 맵 갱신)
-    // -------------------------------------------------------
     public String getCell(int row, int col) {
         Entity e = getEntityAt(row, col);
         return (e == null) ? " " : e.getSymbol();
@@ -245,9 +241,9 @@ public class Room {
     public void setCell(int row, int col, String value) {
         Entity existing = getEntityAt(row, col);
         if (existing != null) {
-            entities.remove(existing);            // 기존 엔티티 제거
+            entities.remove(existing);            
         }
-        Entity e = createEntity(row, col, value); // 새 값이 있으면 팩토리로 생성
+        Entity e = createEntity(row, col, value); 
         if (e != null) {
             entities.add(e);
         }
@@ -261,4 +257,3 @@ public class Room {
     public int getCols()        { return cols; }
     public String getFileName() { return fileName; }
 }
- 

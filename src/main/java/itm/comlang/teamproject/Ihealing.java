@@ -9,5 +9,5 @@ package itm.comlang.teamproject;
  * @author Kapeu
  */
 public interface Ihealing {
-    public void onRecover(Hero hero);
+    public boolean onRecover(Hero hero);
 }

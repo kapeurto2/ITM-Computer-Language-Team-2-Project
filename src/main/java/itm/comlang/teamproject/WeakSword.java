@@ -10,32 +10,31 @@ package itm.comlang.teamproject;
  */
 public class WeakSword extends Item implements Iweapon{
     private int damage;
-
+    private String name;
     
     public WeakSword(int row, int col) {
-        super(row, col, "W");
+        super(row, col);
         this.damage = 2;
+        this.name = "Weak Sword";
    
     }
-    //성민애몽
-    public void onDelete() {
-        
-    }
-    //성민애몽
     @Override
-    public void interact(Hero hero) {
-        
+    public void onDelete(Room room) {
+        room.removeEntity(this);
+    }
+    @Override
+    public void onInteract(Hero hero, Room room) {
+        hero.setWeapon(this);
+        room.removeEntity(this);  
     }
     
-    @Override
-    public void setWeapon(Hero hero) {
-        hero.setWeapon(this);
-        
-        
-    }
     @Override
     public int getDamage() {
         return this.damage;
+    }
+    @Override
+    public String getName() {
+        return this.name;
     }
     
     @Override

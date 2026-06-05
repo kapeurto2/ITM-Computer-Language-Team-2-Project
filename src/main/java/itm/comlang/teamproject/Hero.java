@@ -11,13 +11,16 @@ package itm.comlang.teamproject;
 public class Hero extends Entity implements Fightable{
     
     private int maxHealth;
-    public int Health;
-    public int damage;
-    public Iweapon weapon;
+    private int Health;
+    private int damage;
+    private boolean key;
+    private Iweapon weapon;
     
     
     public Hero(int row, int col) {
-        super(row, col, "@");
+        super(row, col);
+        this.maxHealth=25;
+        this.Health = 25;
         this.weapon = null;
         this.damage = 0;
     }
@@ -31,15 +34,40 @@ public class Hero extends Entity implements Fightable{
         this.weapon = weapon;
         this.damage = weapon.getDamage();
     }
+    public void setKey() {
+        this.key = !(this.key);
+    }
     
+    
+    public Iweapon getWeapon() {
+        return this.weapon;
+    }
+
+    public boolean hasKey() {
+        return this.key;
+    }
+
+    public int[] nextPosition(String dir) {
+        int r = this.getRow();   
+        int c = this.getCol();
+        switch (dir) {
+            case "w": r--; break;   // 위
+            case "s": r++; break;   // 아래
+            case "a": c--; break;   // 왼쪽
+            case "d": c++; break;   // 오른쪽
+    }
+    return new int[]{r, c};
+}
+
     @Override
     public String getSymbol() {
         return "@";
     }
-    @Override // 맵 만들어질때 구현
-    public void onDelete() {
-        
+    @Override
+    public void onDelete(Room room) {
+        room.removeEntity(this);
     }
+
     @Override
     public void attack(Fightable target) {
         int damage = target.getDamage();
@@ -67,13 +95,16 @@ public class Hero extends Entity implements Fightable{
         return this.damage;
     }
     
+    
     @Override // 
     public String toString() {
-        return "HP: "+this.getHealth()+"/"+this.getMaxHealth()+" | Weapon: "+
-                this.weapon+" | Key: "; //key 확인 여부 추가 
+        String w = (this.weapon == null) ? "None" : this.weapon.getName();
+        String k = this.key ? "Yes" : "No";
+        return "HP: " +this.Health + "/" + this.maxHealth + " | Weapon: " + w + " | Key: " + k;
     }
-    
-    
-    
-    
 }
+    
+    
+    
+    
+

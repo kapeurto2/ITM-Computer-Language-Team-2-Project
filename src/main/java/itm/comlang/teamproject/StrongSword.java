@@ -10,37 +10,34 @@ package itm.comlang.teamproject;
  */
 public class StrongSword extends Item implements Iweapon{
     private int damage;
-
+    private String name;
     
     public StrongSword(int row, int col) {
-        super(row, col, "X");
+        super(row, col);
         this.damage = 3;
+        this.name = "Strong Sword";
    
     }
-    //성민애몽
-    public void onDelete() {
-        
-    }
-    //성민애몽
     @Override
-    public void interact(Hero hero) {
-        
+    public void onDelete(Room room) {
+        room.removeEntity(this);
     }
-    
     @Override
-    public void setWeapon(Hero hero) {
+    public void onInteract(Hero hero, Room room) {
         hero.setWeapon(this);
-        
-        
+        room.removeEntity(this);  
     }
     @Override
     public int getDamage() {
         return this.damage;
     }
-    
+    @Override
+    public String getName() {
+        return this.name;
+    }    
     @Override
     public String getSymbol() {
-        return "S";
+        return "X";
     }
     
 }

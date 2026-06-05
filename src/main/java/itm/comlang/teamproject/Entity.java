@@ -10,12 +10,10 @@ public abstract class Entity {
 
     private int row;
     private int col;
-    private String Symbol;   
     
-    public Entity(int row, int col, String Symbol) {
+    public Entity(int row, int col) {
         this.row = row;
         this.col = col;
-        this.Symbol = Symbol;
     }
 
     public int getRow() { return this.row; }
@@ -27,7 +25,7 @@ public abstract class Entity {
     }
 
     public abstract String getSymbol();
-    public abstract void onDelete();
+    public abstract void onDelete(Room room);
     @Override
     public String toString() {
         return getSymbol();

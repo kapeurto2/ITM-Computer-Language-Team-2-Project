@@ -11,34 +11,32 @@ package itm.comlang.teamproject;
 public class Stick extends Item implements Iweapon{
 
     private int damage;
-
+    private String name;
     
     public Stick(int row, int col) {
-        super(row, col, "S");
+        super(row, col);
         this.damage = 1;
+        this.name = "Stick";
    
     }
     //성민애몽
-    public void onDelete() {
-        
-    }
-    //성민애몽
     @Override
-    public void interact(Hero hero) {
-        
+    public void onDelete(Room room) {
+        room.removeEntity(this);
     }
-    
     @Override
-    public void setWeapon(Hero hero) {
+    public void onInteract(Hero hero, Room room) {
         hero.setWeapon(this);
-        
-        
+        room.removeEntity(this);  
     }
     @Override
     public int getDamage() {
         return this.damage;
     }
-    
+    @Override
+    public String getName() {
+        return this.name;
+    }
     @Override
     public String getSymbol() {
         return "S";

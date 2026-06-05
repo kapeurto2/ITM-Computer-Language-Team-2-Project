@@ -8,17 +8,13 @@ package itm.comlang.teamproject;
  *
  * @author Kapeu
  */
-public abstract class Item extends Entity {
-    public Item(int row, int col, String symbol) {
-        super(row, col,symbol);
-    }
 
-    // 아이템은 제거될 때 그리드에서 사라짐
-    @Override
-    public void onDelete() {
+public abstract class Item extends Entity {
+
+    public Item(int row, int col) {
+        super(row, col);
     }
 
     // 픽업 동작은 각 서브클래스가 구현
-    public abstract void interact(Hero hero);
-    
+    public abstract void onInteract(Hero hero, Room room);
 }

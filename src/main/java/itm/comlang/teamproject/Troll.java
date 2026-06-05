@@ -14,16 +14,18 @@ public class Troll extends Entity implements Fightable{
     private int damage;
     
     public Troll(int row, int col) {
-        super(row, col, "T");
+        super(row, col);
         this.maxHealth = 15;
         this.Health = 15;
         this.damage = 4;
     }
     
     @Override
-    public void onDelete() {
-        
+    public void onDelete(Room room) {
+        this.onDrop(room);
+        room.removeEntity(this);
     }
+
     @Override
     public int getMaxHealth() {
         return this.maxHealth;
@@ -62,9 +64,8 @@ public class Troll extends Entity implements Fightable{
     public int getDamage() {
         return this.damage;
     }
-    //성민 애몽..
-    public void onDrop() {
-        
+    public void onDrop(Room room) {
+        room.addEntity(new Key(this.getRow(),this.getCol()));
     }
     
     
