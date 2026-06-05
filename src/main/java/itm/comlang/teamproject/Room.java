@@ -1,16 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 package itm.comlang.teamproject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
 
 /**
  *
@@ -18,65 +13,109 @@ import java.util.ArrayList;
  */
 public class Room {
 
-    private String[][] grid;
+    private ArrayList<Entity> entities;  // 핵심 자료구조 (source of truth)
+    private String[][] grid;             // entities 로부터 갱신되는 맵 (출력/저장용)
     private int rows;
     private int cols;
     private String fileName;
 
     // -------------------------------------------------------
-    // 생성자: CSV 파일 읽어서 그리드 생성
+    // 생성자: CSV 파일을 읽어 엔티티 목록과 맵을 만든다
     // -------------------------------------------------------
     public Room(String fileName) throws IOException {
         this.fileName = fileName;
+        this.entities = new ArrayList<>();
         loadFromCSV(fileName);
-    }
-
-    private void loadFromCSV(String fileName) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-
-        // 첫 줄: 행, 열 수 (헤더)
-        String header = reader.readLine();
-        if (header == null) {
-            throw new IOException("Missing header line in: " + fileName);
-        }
-
-        String[] dimensions = header.trim().split(",");
-        this.rows = Integer.parseInt(dimensions[0].trim());
-        this.cols = Integer.parseInt(dimensions[1].trim());
-        this.grid = new String[rows][cols];
-
-        // 나머지 줄: 셀 내용
-        for (int r = 0; r < rows; r++) {
-            String line = reader.readLine();
-            if (line == null) {
-                throw new IOException("Missing row " + r + " in: " + fileName);
-            }
-            String[] cells = line.split(",", -1);
-            for (int c = 0; c < cols; c++) {
-                grid[r][c] = (c < cells.length) ? cells[c].trim() : " ";
-            }
-        }
-
-        reader.close();
+        refreshMap();
     }
 
     // -------------------------------------------------------
-    // 방 상태를 파일에 저장
+    // 파일 읽기 (Scanner + Paths)
+    // -------------------------------------------------------
+    private void loadFromCSV(String fileName) throws IOException {
+        try (Scanner scanner = new Scanner(Paths.get(fileName))) {
+
+            // 첫 줄: 행, 열 수 (헤더)
+            String header = scanner.nextLine();
+            String[] dimensions = header.trim().split(",");
+            this.rows = Integer.parseInt(dimensions[0].trim());
+            this.cols = Integer.parseInt(dimensions[1].trim());
+
+            // 나머지 줄: 빈 칸이 아닌 셀만 Entity 로 만들어 리스트에 추가
+            for (int r = 0; r < rows; r++) {
+                if (!scanner.hasNextLine()) {
+                    break;
+                }
+                String[] cells = scanner.nextLine().split(",", -1);
+                for (int c = 0; c < cols; c++) {
+                    String value = (c < cells.length) ? cells[c].trim() : "";
+                    if (!value.isEmpty()) {
+                        entities.add(new Entity(r, c, value));
+                    }
+                }
+            }
+        }
+    }
+
+    // -------------------------------------------------------
+    // entities -> grid 갱신 (리스트가 바뀔 때마다 호출)
+    // -------------------------------------------------------
+    public void refreshMap() {
+        this.grid = new String[rows][cols];
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                grid[r][c] = " ";
+            }
+        }
+        for (Entity e : entities) {
+            grid[e.getRow()][e.getCol()] = e.getType();
+        }
+    }
+
+    // -------------------------------------------------------
+    // 방 상태를 파일에 저장 (PrintWriter)
     // -------------------------------------------------------
     public void saveToCSV(String filePath) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-        writer.write(rows + "," + cols);
-        writer.newLine();
-        for (int r = 0; r < rows; r++) {
-            StringBuilder line = new StringBuilder();
-            for (int c = 0; c < cols; c++) {
-                line.append(grid[r][c]);
-                if (c < cols - 1) line.append(",");
+        refreshMap();
+        try (PrintWriter writer = new PrintWriter(filePath)) {
+            writer.println(rows + "," + cols);
+            for (int r = 0; r < rows; r++) {
+                StringBuilder line = new StringBuilder();
+                for (int c = 0; c < cols; c++) {
+                    line.append(grid[r][c]);
+                    if (c < cols - 1) {
+                        line.append(",");
+                    }
+                }
+                writer.println(line.toString());
             }
-            writer.write(line.toString());
-            writer.newLine();
         }
-        writer.close();
+    }
+
+    // -------------------------------------------------------
+    // 엔티티 조회 / 추가 / 삭제 (변경 시 맵 갱신)
+    // -------------------------------------------------------
+    public Entity getEntityAt(int row, int col) {
+        for (Entity e : entities) {
+            if (e.getRow() == row && e.getCol() == col) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    public void addEntity(Entity e) {
+        entities.add(e);
+        refreshMap();
+    }
+
+    public void removeEntity(Entity e) {
+        entities.remove(e);
+        refreshMap();
+    }
+
+    public ArrayList<Entity> getEntities() {
+        return entities;
     }
 
     // -------------------------------------------------------
@@ -97,12 +136,19 @@ public class Room {
             return;
         }
 
-        // 빈 공간이면 이동
-        if (grid[newRow][newCol].equals("") || grid[newRow][newCol].equals(" ")) {
-            grid[oldRow][oldCol] = " ";
-            grid[newRow][newCol] = "@";
+        Entity target = getEntityAt(newRow, newCol);
+
+        // 빈 공간이면 이동 (리스트의 히어로 엔티티 위치를 바꾸고 맵 갱신)
+        if (target == null) {
+            Entity heroEntity = getEntityAt(oldRow, oldCol);
+            if (heroEntity != null) {
+                heroEntity.setLocation(newRow, newCol);
+            } else {
+                entities.add(new Entity(newRow, newCol, "@"));
+            }
+            refreshMap();
         } else {
-            // 빈 공간 아니면 되돌리기 (도어/아이템/몬스터는 main에서 처리)
+            // 빈 공간이 아니면 되돌리기 (도어/아이템/몬스터는 main 에서 처리)
             hero.setLocation(oldRow, oldCol);
         }
     }
@@ -112,13 +158,12 @@ public class Room {
     // -------------------------------------------------------
     public ArrayList<Door> getDoors() {
         ArrayList<Door> doors = new ArrayList<>();
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                if (grid[r][c].startsWith("d:")) {
-                    doors.add(new Door(r, c, grid[r][c].substring(2), false));
-                } else if (grid[r][c].equals("D")) {
-                    doors.add(new Door(r, c, null, true));
-                }
+        for (Entity e : entities) {
+            String type = e.getType();
+            if (type.startsWith("d:")) {
+                doors.add(new Door(e.getRow(), e.getCol(), type.substring(2), false));
+            } else if (type.equals("D")) {
+                doors.add(new Door(e.getRow(), e.getCol(), null, true));
             }
         }
         return doors;
@@ -129,23 +174,27 @@ public class Room {
     // 1순위: @ / 2순위: [1][1] / 3순위: 랜덤 빈 공간
     // -------------------------------------------------------
     public int[] findHeroStart() {
-        // 1순위: CSV에 @ 있으면 그 위치
-        for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                if (grid[r][c].equals("@")) return new int[]{r, c};
+        for (Entity e : entities) {
+            if (e.getType().equals("@")) {
+                return new int[]{e.getRow(), e.getCol()};
+            }
+        }
 
-        // 2순위: [1][1]이 비어있으면
-        if (rows > 1 && cols > 1 && grid[1][1].equals(" "))
+        if (rows > 1 && cols > 1 && getEntityAt(1, 1) == null) {
             return new int[]{1, 1};
+        }
 
-        // 3순위: 랜덤 빈 공간
         ArrayList<int[]> empty = new ArrayList<>();
-        for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                if (grid[r][c].equals(" ")) empty.add(new int[]{r, c});
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (getEntityAt(r, c) == null) {
+                    empty.add(new int[]{r, c});
+                }
+            }
+        }
 
         if (!empty.isEmpty()) {
-            java.util.Random rand = new java.util.Random();
+            Random rand = new Random();
             return empty.get(rand.nextInt(empty.size()));
         }
 
@@ -153,7 +202,7 @@ public class Room {
     }
 
     // -------------------------------------------------------
-    // 방 출력 (ASCII 벽 + 그리드)
+    // 방 출력 (ASCII 벽 + Entity 타입만 출력)
     // -------------------------------------------------------
     public void printRoom() {
         // 상단 벽
@@ -161,11 +210,12 @@ public class Room {
         for (int c = 0; c < cols; c++) System.out.print("-");
         System.out.println("+");
 
-        // 그리드
+        // 그리드: 각 칸의 Entity 타입(심볼)만 출력
         for (int r = 0; r < rows; r++) {
             System.out.print("|");
             for (int c = 0; c < cols; c++) {
-                System.out.print(getCellDisplay(grid[r][c]));
+                Entity e = getEntityAt(r, c);
+                System.out.print(e == null ? " " : e.getSymbol());
             }
             System.out.println("|");
         }
@@ -176,21 +226,27 @@ public class Room {
         System.out.println("+");
     }
 
-    // 셀 표시 문자 변환 (d:room2.csv → d 등)
-    private String getCellDisplay(String cell) {
-        if (cell.startsWith("d:"))      return "d";
-        if (cell.startsWith("G:"))      return "G";
-        if (cell.startsWith("O:"))      return "O";
-        if (cell.startsWith("T:"))      return "T";
-        if (cell.isEmpty())             return " ";
-        return String.valueOf(cell.charAt(0));
+    // -------------------------------------------------------
+    // 셀 값 읽기 / 쓰기 (쓰기 시 리스트 변경 -> 맵 갱신)
+    // -------------------------------------------------------
+    public String getCell(int row, int col) {
+        Entity e = getEntityAt(row, col);
+        return (e == null) ? " " : e.getType();
     }
 
-    // -------------------------------------------------------
-    // 셀 값 읽기 / 쓰기
-    // -------------------------------------------------------
-    public String getCell(int row, int col) { return grid[row][col]; }
-    public void setCell(int row, int col, String value) { grid[row][col] = value; }
+    public void setCell(int row, int col, String value) {
+        Entity e = getEntityAt(row, col);
+        if (value == null || value.trim().isEmpty()) {
+            if (e != null) {
+                entities.remove(e);   // 빈 값으로 설정하면 엔티티 제거
+            }
+        } else if (e != null) {
+            e.setType(value);         // 이미 있으면 타입만 변경
+        } else {
+            entities.add(new Entity(row, col, value));  // 없으면 새로 추가
+        }
+        refreshMap();
+    }
 
     // -------------------------------------------------------
     // Getters

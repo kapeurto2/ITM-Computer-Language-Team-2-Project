@@ -1,42 +1,46 @@
 package itm.comlang.teamproject;
 
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 /**
  *
  * @author Kapeu
  */
-public abstract class Entity {
-    private String symbol;
-    private int x;
-    private int y;
-    public Entity(int x, int y, String symbol) {
-       this.x = x;
-       this.y = y;
-       this.symbol=symbol;
+
+public class Entity {
+
+    private int row;
+    private int col;
+    private String type;   // 원본 셀 값 (예: "@", "d:room2.csv", "G:goblin")
+
+    public Entity(int row, int col, String type) {
+        this.row = row;
+        this.col = col;
+        this.type = type;
     }
-    public abstract void onDeath();
-    
-    public String getSymbol(){
-        return symbol;
+
+    public int getRow() { return this.row; }
+    public int getCol() { return this.col; }
+
+    public void setLocation(int row, int col) {
+        this.row = row;
+        this.col = col;
     }
-    public int getXlocation() {
-        return x;
+
+    public String getType() { return this.type; }
+    public void setType(String type) { this.type = type; }
+
+    /**
+     * 출력용 한 글자 심볼.
+     * "d:room2.csv" -> "d", "G:goblin" -> "G", "@" -> "@"
+     */
+    public String getSymbol() {
+        if (this.type == null || this.type.isEmpty()) {
+            return " ";
+        }
+        return String.valueOf(this.type.charAt(0));
     }
-    public int getYlocation() {
-        return y;
-    }
-    public void setXlocation(int num) {
-        this.x = num;
-    }
-    public void setYlocation(int num) {
-        this.y = num;
-    }
-    public void setLocation(int num1, int num2) {
-        this.x = num1;
-        this.y = num2;
+
+    @Override
+    public String toString() {
+        return getSymbol();
     }
 }
