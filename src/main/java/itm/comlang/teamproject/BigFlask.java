@@ -8,17 +8,17 @@ package itm.comlang.teamproject;
  *
  * @author 오갱
  */
-public class MinorFlask implements Ihealing{
+public class BigFlask implements Ihealing{
     private int row;
     private int col;
     private int recover;
     private String symbol;
     
-    public MinorFlask(int col, int row, String symbol) {
+    public BigFlask(int col, int row, String symbol) {
         this.col = col;
         this.row = row;
         this.symbol = symbol;
-        this.recover = 6;
+        this.recover = 12;
     }
     //성민애몽
     public void onDelete() {
@@ -36,10 +36,6 @@ public class MinorFlask implements Ihealing{
         } else {
             hero.setHealth(heal);
         }
-        
     }
-    
-    
-    
     
 }
