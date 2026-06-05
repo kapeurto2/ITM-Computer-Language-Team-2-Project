@@ -68,7 +68,7 @@ public class Room {
             }
         }
         for (Entity e : entities) {
-            grid[e.getRow()][e.getCol()] = e.getType();
+            grid[e.getRow()][e.getCol()] = e.getSymbol();
         }
     }
 

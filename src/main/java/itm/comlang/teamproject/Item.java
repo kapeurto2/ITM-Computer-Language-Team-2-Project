@@ -15,7 +15,7 @@ public abstract class Item extends Entity {
 
     // 아이템은 제거될 때 그리드에서 사라짐
     @Override
-    public void onDeath() {
+    public void onDelete() {
     }
 
     // 픽업 동작은 각 서브클래스가 구현
