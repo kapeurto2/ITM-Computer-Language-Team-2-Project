@@ -20,4 +20,5 @@ public abstract class Item extends Entity {
 
     // 픽업 동작은 각 서브클래스가 구현
     public abstract void interact(Hero hero);
+    
 }
