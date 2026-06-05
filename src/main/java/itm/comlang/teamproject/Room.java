@@ -202,7 +202,7 @@ public class Room {
     }
 
     // -------------------------------------------------------
-    // 방 출력 (ASCII 벽 + Entity 타입만 출력)
+    // 방 출력 
     // -------------------------------------------------------
     public void printRoom() {
         // 상단 벽
@@ -210,7 +210,7 @@ public class Room {
         for (int c = 0; c < cols; c++) System.out.print("-");
         System.out.println("+");
 
-        // 그리드: 각 칸의 Entity 타입(심볼)만 출력
+        // 그리드: 각 칸의 Entity 출력
         for (int r = 0; r < rows; r++) {
             System.out.print("|");
             for (int c = 0; c < cols; c++) {

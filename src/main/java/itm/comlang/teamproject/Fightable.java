@@ -8,8 +8,8 @@ package itm.comlang.teamproject;
  *
  * @author Kapeu
  */
-public interface Combat {
-    void attack(Combat target);
+public interface Fightable {
+    void attack(Fightable target);
     int getHealth();      // 현재 체력 확인
     int getMaxHealth();          // 최대 체력 확인 
     void takeDamage(int amount); // 데미지 처리
