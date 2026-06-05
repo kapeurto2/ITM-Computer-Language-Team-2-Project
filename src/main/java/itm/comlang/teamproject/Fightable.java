@@ -13,5 +13,6 @@ public interface Fightable {
     int getHealth();      // 현재 체력 확인
     int getMaxHealth();          // 최대 체력 확인 
     void takeDamage(int amount); // 데미지 처리
+    int getDamage(); //hero/ monster로 부터 damage 불러오기
     
 }
