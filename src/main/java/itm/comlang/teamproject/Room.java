@@ -68,13 +68,13 @@ public class Room {
         }
 
         if (value.equals("@")) return new Hero(row, col);
-        if (value.equals("S")) return new Stick(col, row);        
-        if (value.equals("W")) return new WeakSword(col, row);    
-        if (value.equals("X")) return new StrongSword(col, row);  
-        if (value.equals("m")) return new MinorFlask(col, row, "m");  
-        if (value.equals("B")) return new BigFlask(col, row, "B");    
+        //if (value.equals("S")) return new Stick(col, row);        
+        //if (value.equals("W")) return new WeakSword(col, row);    
+        //if (value.equals("X")) return new StrongSword(col, row);  
+        //if (value.equals("m")) return new MinorFlask(col, row, "m");  
+        //if (value.equals("B")) return new BigFlask(col, row, "B");    
         if (value.equals("D")) return new Door(row, col, null, true);
-        if (value.equals("*")) return new Key(row, col);
+        //if (value.equals("*")) return new Key(row, col);
 
         if (value.contains(":")) {
             String[] p = value.split(":", 2);
@@ -94,7 +94,8 @@ public class Room {
                     o.setHealth(Integer.parseInt(data));
                     return o;
                 }
-                case "T": {                     Troll t = new Troll(row, col);
+                case "T": {                    
+                    Troll t = new Troll(row, col);
                     t.setHealth(Integer.parseInt(data));
                     return t;
                 }
@@ -160,44 +161,6 @@ public class Room {
 
     public ArrayList<Entity> getEntities() {
         return entities;
-    }
-
-    // -------------------------------------------------------
-    // 히어로 이동 처리
-    // -------------------------------------------------------
-    public void moveObject(Hero hero, String moving) {
-        int oldRow = hero.getXLocation();
-        int oldCol = hero.getYLocation();
-
-        hero.move(moving);
-
-        int newRow = hero.getXLocation();
-        int newCol = hero.getYLocation();
-
-        // 범위 밖이면 되돌리기
-        if (newRow < 0 || newRow >= rows || newCol < 0 || newCol >= cols) {
-            hero.setLocation(oldRow, oldCol);
-            return;
-        }
-
-        Entity target = getEntityAt(newRow, newCol);
-
-        // 빈 공간이면 이동
-        if (target == null) {
-            Entity heroEntity = getEntityAt(oldRow, oldCol);
-            if (heroEntity != null) {
-                heroEntity.setLocation(newRow, newCol);
-            } else {
-                hero.setLocation(newRow, newCol);
-                if (!entities.contains(hero)) {
-                    entities.add(hero);   // 히어로가 아직 리스트에 없으면 추가
-                }
-            }
-            refreshMap();
-        } else {
-            // 빈 공간이 아니면 되돌리기 (도어/아이템/몬스터는 main 에서 처리)
-            hero.setLocation(oldRow, oldCol);
-        }
     }
 
     // -------------------------------------------------------
