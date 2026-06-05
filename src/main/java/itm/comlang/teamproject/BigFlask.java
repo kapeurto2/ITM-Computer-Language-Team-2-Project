@@ -31,7 +31,11 @@ public class BigFlask implements Ihealing{
     @Override
     public void onRecover(Hero hero) {
         int heal = hero.getHealth() + this.recover;
-        hero.setHealth(heal);
+        if(heal > hero.getMaxHealth()) {
+            hero.setHealth(hero.getMaxHealth());
+        } else {
+            hero.setHealth(heal);
+        }
     }
     
 }
