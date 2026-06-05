@@ -65,7 +65,6 @@ public class Troll extends Entity implements Fightable{
     //성민 애몽..
     public void onDrop() {
         
-        
     }
     
     
