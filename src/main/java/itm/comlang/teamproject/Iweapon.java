@@ -10,4 +10,5 @@ package itm.comlang.teamproject;
  */
 public interface Iweapon {
     public void setWeapon(Hero hero);
+    public int getDamage();
 }
