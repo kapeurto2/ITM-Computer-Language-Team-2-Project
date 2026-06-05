@@ -11,6 +11,7 @@ import java.util.Scanner;
  *
  * @author Kapeu
  */
+
 public class Room {
 
     private ArrayList<Entity> entities;  // 핵심 자료구조 (source of truth)
@@ -41,7 +42,7 @@ public class Room {
             this.rows = Integer.parseInt(dimensions[0].trim());
             this.cols = Integer.parseInt(dimensions[1].trim());
 
-            // 나머지 줄: 빈 칸이 아닌 셀만 Entity 로 만들어 리스트에 추가
+            // 나머지 줄: 셀을 읽어 알맞은 Entity 로 만들어 리스트에 추가
             for (int r = 0; r < rows; r++) {
                 if (!scanner.hasNextLine()) {
                     break;
@@ -49,12 +50,58 @@ public class Room {
                 String[] cells = scanner.nextLine().split(",", -1);
                 for (int c = 0; c < cols; c++) {
                     String value = (c < cells.length) ? cells[c].trim() : "";
-                    if (!value.isEmpty()) {
-                        entities.add(new Entity(r, c, value));
+                    Entity e = createEntity(r, c, value);
+                    if (e != null) {
+                        entities.add(e);
                     }
                 }
             }
         }
+    }
+
+    // -------------------------------------------------------
+    // 셀 문자열 -> 알맞은 Entity 구체 클래스 생성 
+    // -------------------------------------------------------
+    private Entity createEntity(int row, int col, String value) {
+        if (value == null || value.isEmpty() || value.equals(" ")) {
+            return null;                                  
+        }
+
+        if (value.equals("@")) return new Hero(row, col);
+        if (value.equals("S")) return new Stick(col, row);        
+        if (value.equals("W")) return new WeakSword(col, row);    
+        if (value.equals("X")) return new StrongSword(col, row);  
+        if (value.equals("m")) return new MinorFlask(col, row, "m");  
+        if (value.equals("B")) return new BigFlask(col, row, "B");    
+        if (value.equals("D")) return new Door(row, col, null, true);
+        if (value.equals("*")) return new Key(row, col);
+
+        if (value.contains(":")) {
+            String[] p = value.split(":", 2);
+            String head = p[0];
+            String data = p[1];
+
+            switch (head) {
+                case "d":   
+                    return new Door(row, col, data, false);
+                case "G": { 
+                    Goblin g = new Goblin(row, col);
+                    g.setHealth(Integer.parseInt(data));
+                    return g;
+                }
+                case "O": { 
+                    Orc o = new Orc(row, col);
+                    o.setHealth(Integer.parseInt(data));
+                    return o;
+                }
+                case "T": {                     Troll t = new Troll(row, col);
+                    t.setHealth(Integer.parseInt(data));
+                    return t;
+                }
+            }
+        }
+
+        return null;  // 알 수 없는 심볼은 무시
     }
 
     // -------------------------------------------------------
@@ -72,9 +119,6 @@ public class Room {
         }
     }
 
-    // -------------------------------------------------------
-    // 방 상태를 파일에 저장 (PrintWriter)
-    // -------------------------------------------------------
     public void saveToCSV(String filePath) throws IOException {
         refreshMap();
         try (PrintWriter writer = new PrintWriter(filePath)) {
@@ -138,13 +182,16 @@ public class Room {
 
         Entity target = getEntityAt(newRow, newCol);
 
-        // 빈 공간이면 이동 (리스트의 히어로 엔티티 위치를 바꾸고 맵 갱신)
+        // 빈 공간이면 이동
         if (target == null) {
             Entity heroEntity = getEntityAt(oldRow, oldCol);
             if (heroEntity != null) {
                 heroEntity.setLocation(newRow, newCol);
             } else {
-                entities.add(new Entity(newRow, newCol, "@"));
+                hero.setLocation(newRow, newCol);
+                if (!entities.contains(hero)) {
+                    entities.add(hero);   // 히어로가 아직 리스트에 없으면 추가
+                }
             }
             refreshMap();
         } else {
@@ -154,16 +201,13 @@ public class Room {
     }
 
     // -------------------------------------------------------
-    // 방 안의 도어 목록 반환
+    // 방 안의 도어 목록 반환 (instanceof 로 깔끔하게)
     // -------------------------------------------------------
     public ArrayList<Door> getDoors() {
         ArrayList<Door> doors = new ArrayList<>();
         for (Entity e : entities) {
-            String type = e.getType();
-            if (type.startsWith("d:")) {
-                doors.add(new Door(e.getRow(), e.getCol(), type.substring(2), false));
-            } else if (type.equals("D")) {
-                doors.add(new Door(e.getRow(), e.getCol(), null, true));
+            if (e instanceof Door) {
+                doors.add((Door) e);
             }
         }
         return doors;
@@ -171,11 +215,11 @@ public class Room {
 
     // -------------------------------------------------------
     // 히어로 시작 위치 찾기
-    // 1순위: @ / 2순위: [1][1] / 3순위: 랜덤 빈 공간
+    // 1순위: @(Hero) / 2순위: [1][1] / 3순위: 랜덤 빈 공간
     // -------------------------------------------------------
     public int[] findHeroStart() {
         for (Entity e : entities) {
-            if (e.getType().equals("@")) {
+            if (e instanceof Hero) {
                 return new int[]{e.getRow(), e.getCol()};
             }
         }
@@ -202,20 +246,21 @@ public class Room {
     }
 
     // -------------------------------------------------------
-    // 방 출력 
+    // 방 출력 (ASCII 벽 + grid 직접 읽기: 칸당 O(1))
     // -------------------------------------------------------
     public void printRoom() {
+        refreshMap();  // grid 최신화
+
         // 상단 벽
         System.out.print("+");
         for (int c = 0; c < cols; c++) System.out.print("-");
         System.out.println("+");
 
-        // 그리드: 각 칸의 Entity 출력
+        // 그리드
         for (int r = 0; r < rows; r++) {
             System.out.print("|");
             for (int c = 0; c < cols; c++) {
-                Entity e = getEntityAt(r, c);
-                System.out.print(e == null ? " " : e.getSymbol());
+                System.out.print(grid[r][c]);
             }
             System.out.println("|");
         }
@@ -231,19 +276,17 @@ public class Room {
     // -------------------------------------------------------
     public String getCell(int row, int col) {
         Entity e = getEntityAt(row, col);
-        return (e == null) ? " " : e.getType();
+        return (e == null) ? " " : e.getSymbol();
     }
 
     public void setCell(int row, int col, String value) {
-        Entity e = getEntityAt(row, col);
-        if (value == null || value.trim().isEmpty()) {
-            if (e != null) {
-                entities.remove(e);   // 빈 값으로 설정하면 엔티티 제거
-            }
-        } else if (e != null) {
-            e.setType(value);         // 이미 있으면 타입만 변경
-        } else {
-            entities.add(new Entity(row, col, value));  // 없으면 새로 추가
+        Entity existing = getEntityAt(row, col);
+        if (existing != null) {
+            entities.remove(existing);            // 기존 엔티티 제거
+        }
+        Entity e = createEntity(row, col, value); // 새 값이 있으면 팩토리로 생성
+        if (e != null) {
+            entities.add(e);
         }
         refreshMap();
     }
@@ -255,3 +298,4 @@ public class Room {
     public int getCols()        { return cols; }
     public String getFileName() { return fileName; }
 }
+ 

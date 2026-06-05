@@ -7,6 +7,7 @@ package itm.comlang.teamproject;
 
 public abstract class Entity {
 
+
     private int row;
     private int col;
     private String Symbol;   
