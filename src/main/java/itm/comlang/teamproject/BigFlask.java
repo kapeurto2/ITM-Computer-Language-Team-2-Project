@@ -8,34 +8,41 @@ package itm.comlang.teamproject;
  *
  * @author 오갱
  */
-public class BigFlask implements Ihealing{
-    private int row;
-    private int col;
+public class BigFlask extends Item implements Ihealing {
+
     private int recover;
-    private String symbol;
-    
-    public BigFlask(int col, int row, String symbol) {
-        this.col = col;
-        this.row = row;
-        this.symbol = symbol;
+
+    public BigFlask(int row, int col) {
+        super(row, col, "B");
         this.recover = 12;
     }
+
     //성민애몽
     public void onDelete() {
-        
+
     }
+
     // 성민애몽
-    public void onInteract() {
-        
+    
+    public void interact(Hero hero) {
+
     }
+
     @Override
     public void onRecover(Hero hero) {
         int heal = hero.getHealth() + this.recover;
-        if(heal > hero.getMaxHealth()) {
+        if (heal > hero.getMaxHealth()) {
             hero.setHealth(hero.getMaxHealth());
         } else {
             hero.setHealth(heal);
         }
+
     }
     
+    @Override
+    public String getSymbol() {
+        return "m";
+    }
+    
+
 }

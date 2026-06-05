@@ -8,14 +8,13 @@ package itm.comlang.teamproject;
  *
  * @author 오갱
  */
-public class Stick extends Item implements Iweapon{
-
+public class WeakSword extends Item implements Iweapon{
     private int damage;
 
     
-    public Stick(int row, int col) {
-        super(row, col, "S");
-        this.damage = 1;
+    public WeakSword(int row, int col) {
+        super(row, col, "W");
+        this.damage = 2;
    
     }
     //성민애몽
@@ -41,7 +40,6 @@ public class Stick extends Item implements Iweapon{
     
     @Override
     public String getSymbol() {
-        return "S";
+        return "W";
     }
-    
 }

@@ -8,14 +8,13 @@ package itm.comlang.teamproject;
  *
  * @author 오갱
  */
-public class Stick extends Item implements Iweapon{
-
+public class StrongSword extends Item implements Iweapon{
     private int damage;
 
     
-    public Stick(int row, int col) {
-        super(row, col, "S");
-        this.damage = 1;
+    public StrongSword(int row, int col) {
+        super(row, col, "X");
+        this.damage = 3;
    
     }
     //성민애몽

@@ -8,16 +8,13 @@ package itm.comlang.teamproject;
  *
  * @author 오갱
  */
-public class MinorFlask implements Ihealing{
-    private int row;
-    private int col;
+public class MinorFlask extends Item implements Ihealing{
+
     private int recover;
-    private String symbol;
+
     
-    public MinorFlask(int col, int row, String symbol) {
-        this.col = col;
-        this.row = row;
-        this.symbol = symbol;
+    public MinorFlask(int row, int col) {
+        super(row, col, "m");
         this.recover = 6;
     }
     //성민애몽
@@ -25,9 +22,11 @@ public class MinorFlask implements Ihealing{
         
     }
     // 성민애몽
-    public void onInteract() {
+    @Override
+    public void interact(Hero hero) {
         
     }
+    
     @Override
     public void onRecover(Hero hero) {
         int heal = hero.getHealth() + this.recover;
@@ -38,6 +37,12 @@ public class MinorFlask implements Ihealing{
         }
         
     }
+    @Override
+    public String getSymbol() {
+        return "m";
+    }
+    
+    
     
     
     
