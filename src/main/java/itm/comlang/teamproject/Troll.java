@@ -8,67 +8,25 @@ package itm.comlang.teamproject;
  *
  * @author 오갱
  */
-public class Troll extends Entity implements Fightable{
-    private int maxHealth;
-    private int Health;
-    private int damage;
-    
+public class Troll extends Monster {
+ 
     public Troll(int row, int col) {
-        super(row, col);
-        this.maxHealth = 15;
-        this.Health = 15;
-        this.damage = 4;
+        super(row, col, 15, 4);
     }
-    
+ 
+    // 처치 시 자기 자리에 키를 떨어뜨린 뒤 방에서 제거된다
     @Override
     public void onDelete(Room room) {
-        this.onDrop(room);
-        room.removeEntity(this);
+        onDrop(room);
+        super.onDelete(room);   // Monster 의 기본 제거 동작 재사용
     }
-
-    @Override
-    public int getMaxHealth() {
-        return this.maxHealth;
+ 
+    public void onDrop(Room room) {
+        room.addEntity(new Key(this.getRow(), this.getCol()));
     }
-    @Override
-    public int getHealth() {
-        return this.Health;
-    }
-    
-    public void setHealth(int health) {
-        this.Health = health;
-    }
-    @Override
-    public void attack(Fightable target) {
-        int damage = target.getDamage();
-        this.takeDamage(damage);
-        target.takeDamage(this.damage);
-        
-    }
-    @Override
-    public void takeDamage(int amount) {
-        this.Health -= amount;
-    }
-    
-    
+ 
     @Override
     public String getSymbol() {
         return "T";
     }
-    
-    @Override
-    public String toString() {
-        return super.toString();
-    }
-    @Override
-    public int getDamage() {
-        return this.damage;
-    }
-    public void onDrop(Room room) {
-        room.addEntity(new Key(this.getRow(),this.getCol()));
-    }
-    
-    
-  
-    
 }

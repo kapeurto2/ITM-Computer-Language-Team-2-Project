@@ -27,19 +27,14 @@ public class Room {
         refreshMap();
     }
 
-    // -------------------------------------------------------
-    // 파일 읽기 (Scanner + Paths)
-    // -------------------------------------------------------
     private void loadFromCSV(String fileName) throws IOException {
         try (Scanner scanner = new Scanner(Paths.get(fileName))) {
 
-            // 첫 줄: 행, 열 수 (헤더)
             String header = scanner.nextLine();
             String[] dimensions = header.trim().split(",");
             this.rows = Integer.parseInt(dimensions[0].trim());
             this.cols = Integer.parseInt(dimensions[1].trim());
 
-            // 나머지 줄: 셀을 읽어 알맞은 Entity 로 만들어 리스트에 추가
             for (int r = 0; r < rows; r++) {
                 if (!scanner.hasNextLine()) {
                     break;
@@ -250,9 +245,7 @@ public class Room {
         refreshMap();
     }
 
-    // -------------------------------------------------------
     // Getters
-    // -------------------------------------------------------
     public int getRows()        { return rows; }
     public int getCols()        { return cols; }
     public String getFileName() { return fileName; }
