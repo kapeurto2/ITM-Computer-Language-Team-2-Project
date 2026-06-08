@@ -104,8 +104,18 @@ public class Room {
                 grid[r][c] = " ";
             }
         }
+        // Draw floor objects (items/monsters/doors) first.
         for (Entity e : entities) {
-            grid[e.getRow()][e.getCol()] = e.getSymbol();
+            if (!(e instanceof Hero)) {
+                grid[e.getRow()][e.getCol()] = e.getSymbol();
+            }
+        }
+        // Always draw the hero on top, so it is never hidden under a floor object
+        // (e.g. standing on a full-HP potion that stays in the room).
+        for (Entity e : entities) {
+            if (e instanceof Hero) {
+                grid[e.getRow()][e.getCol()] = e.getSymbol();
+            }
         }
     }
 
@@ -155,6 +165,41 @@ public class Room {
             }
         }
         return null;
+    }
+
+    // Returns the "floor object" (excluding the hero) at this cell, or null.
+    // A cell may hold both the hero and a floor object at once (e.g. the hero
+    // standing on a full-HP potion), so use this when querying floor objects only.
+    public Entity getFloorEntityAt(int row, int col) {
+        for (Entity e : entities) {
+            if (!(e instanceof Hero) && e.getRow() == row && e.getCol() == col) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    // Finds an empty cell to drop an item at (row,col).
+    // If that cell already holds a floor object, returns the nearest empty cell
+    // instead (prevents dropped items from stacking and hiding under each other).
+    public int[] findDropCell(int row, int col) {
+        if (getFloorEntityAt(row, col) == null) {
+            return new int[]{row, col};
+        }
+        int maxRadius = Math.max(rows, cols);
+        for (int radius = 1; radius < maxRadius; radius++) {
+            for (int dr = -radius; dr <= radius; dr++) {
+                for (int dc = -radius; dc <= radius; dc++) {
+                    int r = row + dr;
+                    int c = col + dc;
+                    if (r >= 0 && r < rows && c >= 0 && c < cols
+                            && getFloorEntityAt(r, c) == null) {
+                        return new int[]{r, c};
+                    }
+                }
+            }
+        }
+        return new int[]{row, col};   // no empty cell: fall back to the original
     }
 
     public void addEntity(Entity e) {

@@ -18,7 +18,8 @@ public abstract class Monster extends Entity implements Fightable {
     public Monster(int row, int col, int maxHealth, int damage) {
         super(row, col);
         this.maxHealth = maxHealth;
-        this.health = maxHealth;           this.damage = damage;
+        this.health = maxHealth;
+        this.damage = damage;
     }
 
     @Override
@@ -45,11 +46,18 @@ public abstract class Monster extends Entity implements Fightable {
         this.health -= amount;
     }
 
-    @Override
-    public void attack(Fightable target) {
-        int incoming = target.getDamage();
-        this.takeDamage(incoming);
-        target.takeDamage(this.damage);
+    // =======================================================
+    // Combat (monster side)
+    // Simultaneous counter when attacked by the hero: deals the
+    // monster's own damage to the hero.
+    // =======================================================
+    public void counterAttack(Hero hero) {
+        hero.takeDamage(this.damage);
+    }
+
+    // Defeated once HP drops to zero or below.
+    public boolean isDefeated() {
+        return this.health <= 0;
     }
 
     @Override

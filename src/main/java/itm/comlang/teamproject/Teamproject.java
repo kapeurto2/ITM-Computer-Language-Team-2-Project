@@ -10,7 +10,7 @@ import java.nio.file.Paths;
 import java.util.Scanner;
 
 /**
- * Solo Adventure Maze - game entry point and main loop.
+ * 
  *
  * @author Kapeu
  */
@@ -110,7 +110,7 @@ public class Teamproject {
             } else if (target instanceof Item) {
                 handleItem(hero, room, (Item) target, nr, nc);
 
-            } else if (target instanceof Fightable) {
+            } else if (target instanceof Monster) {
                 System.out.println("A " + target.getSymbol()
                         + " blocks the way. Attack it from an adjacent tile.");
 
@@ -175,6 +175,7 @@ public class Teamproject {
 
     // =======================================================
     // Combat: handle every monster adjacent to the hero (up/down/left/right).
+    // The actual damage math is done by Hero.attack / Monster.counterAttack.
     // =======================================================
     private static boolean handleAdjacentCombat(Hero hero, Room room) {
         boolean killedAny = false;
@@ -183,8 +184,8 @@ public class Teamproject {
             int r = hero.getRow() + d[0];
             int c = hero.getCol() + d[1];
             Entity e = room.getEntityAt(r, c);
-            if (e instanceof Fightable && !(e instanceof Hero)) {
-                boolean killed = fightMonster(hero, room, e);
+            if (e instanceof Monster) {
+                boolean killed = fightMonster(hero, room, (Monster) e);
                 if (killed) {
                     killedAny = true;
                 }
@@ -197,13 +198,12 @@ public class Teamproject {
     }
 
     // Action-menu loop for one monster. Returns true if it was killed.
-    private static boolean fightMonster(Hero hero, Room room, Entity monster) {
-        Fightable mon = (Fightable) monster;
+    private static boolean fightMonster(Hero hero, Room room, Monster monster) {
 
-        while (mon.getHealth() > 0 && hero.getHealth() > 0) {
+        while (!monster.isDefeated() && hero.getHealth() > 0) {
             System.out.println();
             System.out.println("A " + monster.getSymbol() + " is adjacent! "
-                    + "(HP: " + mon.getHealth() + ", Damage: " + mon.getDamage() + ")");
+                    + "(HP: " + monster.getHealth() + ", Damage: " + monster.getDamage() + ")");
 
             if (hero.getWeapon() == null) {
                 System.out.println("You are unarmed and cannot attack. You must flee.");
@@ -217,13 +217,13 @@ public class Teamproject {
             String choice = INPUT.nextLine().trim().toLowerCase();
 
             if (choice.equals("a")) {
-                // Simultaneous hit: one hero.attack handles both sides.
-                hero.attack(mon);
+                // The simultaneous exchange is handled by Hero/Monster.
+                hero.attack(monster);
                 System.out.println("You strike the " + monster.getSymbol()
-                        + "! (Monster HP: " + Math.max(mon.getHealth(), 0)
+                        + "! (Monster HP: " + Math.max(monster.getHealth(), 0)
                         + ", Your HP: " + Math.max(hero.getHealth(), 0) + ")");
 
-                if (mon.getHealth() <= 0) {
+                if (monster.isDefeated()) {
                     System.out.println("The " + monster.getSymbol() + " is defeated!");
                     monster.onDelete(room);   // Troll drops the key here
                     return true;              // killed
@@ -290,15 +290,20 @@ public class Teamproject {
         }
     }
 
-    // Drop the old weapon at (r,c) by recreating its concrete type.
+    // Drop the old weapon by recreating its concrete type.
+    // findDropCell prevents stacking the dropped weapon on top of another floor object.
     private static void dropOldWeapon(Room room, Iweapon old, int r, int c) {
+        int[] cell = room.findDropCell(r, c);
+        int dr = cell[0];
+        int dc = cell[1];
+
         Item dropped = null;
         if (old instanceof Stick) {
-            dropped = new Stick(r, c);
+            dropped = new Stick(dr, dc);
         } else if (old instanceof WeakSword) {
-            dropped = new WeakSword(r, c);
+            dropped = new WeakSword(dr, dc);
         } else if (old instanceof StrongSword) {
-            dropped = new StrongSword(r, c);
+            dropped = new StrongSword(dr, dc);
         }
         if (dropped != null) {
             room.addEntity(dropped);

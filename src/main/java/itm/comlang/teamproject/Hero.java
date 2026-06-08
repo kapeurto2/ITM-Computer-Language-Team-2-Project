@@ -8,37 +8,35 @@ package itm.comlang.teamproject;
  *
  * @author 오갱
  */
-public class Hero extends Entity implements Fightable{
-    
+public class Hero extends Entity implements Fightable {
+
     private int maxHealth;
     private int Health;
     private int damage;
     private boolean key;
     private Iweapon weapon;
-    
-    
+
     public Hero(int row, int col) {
         super(row, col);
-        this.maxHealth=25;
+        this.maxHealth = 25;
         this.Health = 25;
         this.weapon = null;
         this.damage = 0;
     }
-    
+
     public void setHealth(int health) {
         this.Health = health;
     }
-    
-    
+
     public void setWeapon(Iweapon weapon) {
         this.weapon = weapon;
         this.damage = weapon.getDamage();
     }
+
     public void setKey() {
-        this.key = !(this.key);
+        this.key = true;
     }
-    
-    
+
     public Iweapon getWeapon() {
         return this.weapon;
     }
@@ -48,63 +46,62 @@ public class Hero extends Entity implements Fightable{
     }
 
     public int[] nextPosition(String dir) {
-        int r = this.getRow();   
+        int r = this.getRow();
         int c = this.getCol();
         switch (dir) {
-            case "w": r--; break;   // 위
-            case "s": r++; break;   // 아래
-            case "a": c--; break;   // 왼쪽
-            case "d": c++; break;   // 오른쪽
+            case "w": r--; break;   // up
+            case "s": r++; break;   // down
+            case "a": c--; break;   // left
+            case "d": c++; break;   // right
+        }
+        return new int[]{r, c};
     }
-    return new int[]{r, c};
-}
+
+    // =======================================================
+    // Combat (hero side)
+    // The hero attacks an adjacent monster. Combat is a simultaneous
+    // exchange: the hero deals weapon damage and the monster strikes
+    // back immediately (the counter happens even on the killing blow).
+    // =======================================================
+    public void attack(Monster target) {
+        target.takeDamage(this.damage);   // hero's hit (weapon damage)
+        target.counterAttack(this);       // monster's simultaneous counter
+    }
 
     @Override
     public String getSymbol() {
         return "@";
     }
+
     @Override
     public void onDelete(Room room) {
         room.removeEntity(this);
     }
 
-    @Override
-    public void attack(Fightable target) {
-        int damage = target.getDamage();
-        this.takeDamage(damage);
-        target.takeDamage(this.damage);
-        
-    }
-    @Override // 현재 체력 확인
+    @Override // current health
     public int getHealth() {
         return this.Health;
-        
     }
-    @Override // 최대 체력 확인 
+
+    @Override // max health
     public int getMaxHealth() {
         return this.maxHealth;
-    } 
-    
-    @Override // 데미지 처리
+    }
+
+    @Override // apply damage
     public void takeDamage(int amount) {
         this.Health -= amount;
-        
     }
+
     @Override
     public int getDamage() {
         return this.damage;
     }
-    
-    
-    @Override // 
+
+    @Override
     public String toString() {
         String w = (this.weapon == null) ? "None" : this.weapon.getName();
         String k = this.key ? "Yes" : "No";
-        return "HP: " +this.Health + "/" + this.maxHealth + " | Weapon: " + w + " | Key: " + k;
+        return "HP: " + this.Health + "/" + this.maxHealth + " | Weapon: " + w + " | Key: " + k;
     }
 }
-    
-    
-    
-    
-
