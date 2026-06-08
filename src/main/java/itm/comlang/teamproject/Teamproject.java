@@ -321,7 +321,7 @@ public class Teamproject {
         if (door.isMaster()) {
             if (hero.hasKey()) {
                 System.out.println("\nYou unlock the master door with the key...");
-                System.out.println("*** YOU ESCAPED THE MAZE! YOU WIN! ***");
+                System.out.println("   YOU ESCAPED THE MAZE! YOU WIN!    ");
                 return null;
             } else {
                 System.out.println("The master door is locked. You need a key.");
